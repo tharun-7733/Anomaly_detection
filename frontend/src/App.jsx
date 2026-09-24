@@ -9,7 +9,6 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { getAnalytics, getAnomalies, getDashboardStats, getPackets, getTraffic } from './services/api'
-import NetworkTopology from './components/NetworkTopology'
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, route: 'dashboard' },
@@ -43,20 +42,18 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (!stats) return undefined
     const timer = setInterval(() => {
-      setTraffic((current) => {
-        const last = current[current.length - 1] || { packets: 420, normal: 405, anomaly: 15 }
-        const anomaly = Math.max(5, Math.round(last.anomaly + (Math.random() * 10 - 4)))
-        const packetsPerSecond = Math.max(260, Math.round(last.packets + (Math.random() * 50 - 25)))
-        const next = { time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), packets: packetsPerSecond, normal: packetsPerSecond - anomaly, anomaly }
-        return [...current.slice(-17), next]
-      })
-      setPackets((current) => [{ timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), src_ip: '10.171.100.58', dst_ip: '40.79.150.124', protocol: Math.random() > .25 ? 'TCP' : 'UDP', src_port: 62403, dst_port: 443, packet_size: 900 + Math.round(Math.random() * 560), status: Math.random() > .88 ? 'Warning' : 'Normal', score: Math.random() > .88 ? 60 + Math.round(Math.random() * 25) : 5 + Math.round(Math.random() * 20) }, ...current].slice(0, 8))
-      setStats((current) => ({ ...current, totalPackets: current.totalPackets + Math.round(Math.random() * 12), normalTraffic: current.normalTraffic + Math.round(Math.random() * 10) }))
-    }, 3500)
-    return () => clearInterval(timer)
-  }, [stats])
+      Promise.all([getDashboardStats(), getTraffic(), getAnomalies(), getPackets(), getAnalytics()])
+        .then(([dashboardStats, liveTraffic, liveAnomalies, livePackets, analyticsData]) => {
+          setStats(dashboardStats); 
+          setTraffic(liveTraffic); 
+          setAnomalies(liveAnomalies); 
+          setPackets(livePackets); 
+          setAnalytics(analyticsData);
+        });
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
 
   if (!stats || !analytics) return <div className="loading-screen"><ShieldCheck size={30} /><span>Initializing secure telemetry...</span></div>
 
@@ -127,18 +124,14 @@ function Dashboard({ stats, traffic, anomalies }) {
       {/* Floating Telemetry Metric Cards */}
       <div className="stats-grid">
         <StatCard label="Total Packets" value={formatNumber(stats.totalPackets)} detail="+8.2% from previous hour" icon={Database} accent="indigo" />
-        <StatCard label="Packets / sec" value="2,184" detail="Current throughput" icon={Gauge} accent="violet" />
-        <StatCard label="Active connections" value="1,842" detail="Across 6 monitored nodes" icon={Network} accent="purple" />
-        <StatCard label="Normal Packets" value="99.7%" detail="12,421 healthy packets" icon={ShieldCheck} accent="blue" />
+        <StatCard label="Packets / sec" value={formatNumber(stats.rate || 0)} detail="Current throughput" icon={Gauge} accent="violet" />
+        <StatCard label="CPU Usage" value={`${(stats.cpu || 0).toFixed(1)}%`} detail="System load" icon={Cpu} accent="purple" />
+        <StatCard label="RAM Usage" value={`${(stats.ram || 0).toFixed(1)}%`} detail="Memory load" icon={ShieldCheck} accent="blue" />
         <StatCard label="Anomalies detected" value={stats.anomalies} detail="+4 detected this hour" icon={AlertOctagon} accent="amber" />
-        <StatCard label="Current threat level" value="Elevated" detail="2 events require review" icon={Zap} accent="red" />
+        <StatCard label="Current threat level" value={stats.cpu > 80 ? "Critical" : "Normal"} detail={stats.cpu > 80 ? "High load detected" : "System stable"} icon={Zap} accent="red" />
       </div>
 
-      {/* 3D Hero Scene Section */}
-      <section className="panel topology-panel">
-        <SectionHeader eyebrow="3D ATMOSPHERIC CORE // NETWORK NODES" title="Network Telemetry Hero Scene" action={<span className="chart-live"><span className="live-dot" /> 6 nodes monitored</span>} />
-        <NetworkTopology />
-      </section>
+
 
       <div className="dashboard-grid">
         <section className="panel traffic-panel">
@@ -310,15 +303,12 @@ function Monitoring({ traffic, packets, stats }) {
         <div className="monitoring-active"><span className="live-dot" /> Monitoring active</div>
       </div>
       <div className="metric-strip">
-        <div><span>Packets / sec</span><strong>{traffic.at(-1)?.packets || 0}</strong><small>+12.4% <em>vs baseline</em></small></div>
-        <div><span>Bytes / sec</span><strong>2.84 MB</strong><small>+4.8% <em>vs baseline</em></small></div>
-        <div><span>Active connections</span><strong>1,842</strong><small className="good">Stable <em>last 5 min</em></small></div>
-        <div><span>Normal / anomaly</span><strong>{formatNumber(stats.normalTraffic)} <i>/</i> {stats.anomalies}</strong><small className="good">99.7% healthy</small></div>
+        <div><span>Packets / sec</span><strong>{formatNumber(stats.rate || 0)}</strong><small>Live throughput</small></div>
+        <div><span>Bytes / sec</span><strong>{formatNumber(stats.sbytes || 0)} B</strong><small>Live bandwidth</small></div>
+        <div><span>CPU Load</span><strong>{(stats.cpu || 0).toFixed(1)}%</strong><small className="good">Sensor processing</small></div>
+        <div><span>RAM Load</span><strong>{(stats.ram || 0).toFixed(1)}%</strong><small className="good">System memory</small></div>
       </div>
-      <section className="panel topology-panel monitoring-topology">
-        <SectionHeader eyebrow="NETWORK HERO SCENE // SENSORS" title="Live network map" action={<span className="chart-live"><span className="live-dot" /> Streaming</span>} />
-        <NetworkTopology />
-      </section>
+
       <div className="dashboard-grid monitoring-grid">
         <section className="panel traffic-panel">
           <SectionHeader eyebrow="PACKETS PER SECOND" title="Live traffic stream" />
