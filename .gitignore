@@ -43,8 +43,9 @@ frontend/dist/
 !Model/data/processed/evaluation_results_unsw.csv
 
 # ── Model Binaries (too large for GitHub) ─────
-**/models/*.pkl
-**/models/*.pth
+# keeping .pkl files tracked since they are only 6MB
+# **/models/*.pkl
+# **/models/*.pth
 # Keep JSON schema & results
 !**/models/feature_schema.json
 !**/models/optimal_threshold.txt
