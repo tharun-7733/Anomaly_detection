@@ -4,7 +4,7 @@ import pandas as pd
 import os
 
 # Load models
-MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
+MODEL_DIR = os.path.dirname(__file__)
 try:
     clf = joblib.load(os.path.join(MODEL_DIR, "isolation_forest.pkl"))
     scaler = joblib.load(os.path.join(MODEL_DIR, "scaler.pkl"))
