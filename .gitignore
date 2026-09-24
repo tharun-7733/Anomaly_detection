@@ -1,9 +1,53 @@
-﻿venv/
-.venv/
+# ── OS & Editor ──────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── Python ───────────────────────────────────
 __pycache__/
-*.pyc
-frontend/node_modules/
-frontend/dist/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
 .env
 .env.*
 !.env.example
+.venv/
+venv/
+
+# ── Jupyter ───────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Node / Frontend ───────────────────────────
+frontend/node_modules/
+frontend/dist/
+
+# ── Large Dataset Files (too big for GitHub) ──
+**/dataset_anomaly/**/*.csv
+**/dataset_anomaly/**/*.pcap
+**/dataset_anomaly/*.pcap
+**/dataset_anomaly/*.csv
+# Keep only the feature descriptor
+!**/dataset_anomaly/UNSW-NB15/NUSW-NB15_features.csv
+
+# ── Large Raw Data ────────────────────────────
+**/data/processed/*.csv
+**/data/processed/features.csv
+**/data/processed/metadata.csv
+**/data/sessions/
+# Keep evaluation results
+!Model/data/processed/evaluation_results_unsw.csv
+
+# ── Model Binaries (too large for GitHub) ─────
+**/models/*.pkl
+**/models/*.pth
+# Keep JSON schema & results
+!**/models/feature_schema.json
+!**/models/optimal_threshold.txt
+
+# ── pytest / test cache ───────────────────────
+.pytest_cache/
