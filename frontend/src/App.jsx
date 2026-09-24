@@ -110,7 +110,7 @@ function Dashboard({ stats, traffic, anomalies }) {
       <div className="hero-editorial">
         <div className="hero-editorial-left">
           <p className="eyebrow-hero"><span className="live-dot" /> REAL-TIME NETWORK INTELLIGENCE</p>
-          <h1 className="hero-headline">Real-Time Autonomous<br />Network Defense</h1>
+          <h1 className="hero-headline">Real-Time Anomaly Detection<br />in High-Speed Network Packet Traces</h1>
           <p className="hero-subtext">Perimeter network intelligence powered by live Scapy telemetry & deep inference engines.</p>
         </div>
         <div className="hero-editorial-right">
